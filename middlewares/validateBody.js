@@ -1,12 +1,15 @@
-const HttpError = require("../helpers/HttpError");
+const { HttpError } = require("../helpers");
 
 const validateBody = (schema) => {
   const func = (req, res, next) => {
     const { error } = schema.validate(req.body);
     if (error) {
-      Object.keys(req.body).length === 0
-        ? next(HttpError(400, "missing fields"))
-        : next(HttpError(400, error.message));
+      if (Object.keys(req.body).length === 0) {
+        req.method === "PATCH"
+          ? next(HttpError(400, "missing field favorite"))
+          : next(HttpError(400, "missing fields"));
+      }
+      next(HttpError(400, error.message));
     }
     next();
   };
