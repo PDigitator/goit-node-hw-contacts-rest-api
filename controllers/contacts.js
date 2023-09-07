@@ -6,6 +6,10 @@ const listContacts = async (req, res) => {
   const { page = 1, limit = 20, favorite = null } = req.query;
   const skip = (page - 1) * limit;
 
+  const allContacts = await Contact.find({ owner });
+  const quantityContacts = allContacts.length;
+  const totalPage = Math.ceil(quantityContacts / limit);
+
   const query = favorite === "true" ? { owner, favorite } : { owner };
 
   const result = await Contact.find(query, "-createdAt -updatedAt", {
@@ -13,7 +17,13 @@ const listContacts = async (req, res) => {
     limit,
     favorite,
   }).populate("owner", "email");
-  res.json(result);
+  res.json({
+    contacts: result,
+    total: quantityContacts,
+    page: Number(page),
+    perPage: Number(limit),
+    totalPage,
+  });
 };
 
 const getContactById = async (req, res) => {
