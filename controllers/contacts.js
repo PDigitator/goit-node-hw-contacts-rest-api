@@ -3,18 +3,22 @@ const { HttpError, ctrlWrapper } = require("../helpers");
 
 const listContacts = async (req, res) => {
   const { _id: owner } = req.user;
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 20, favorite = null } = req.query;
   const skip = (page - 1) * limit;
-  const result = await Contact.find({ owner }, "-createdAT -updatedAT", {
+
+  const query = favorite === "true" ? { owner, favorite } : { owner };
+
+  const result = await Contact.find(query, "-createdAt -updatedAt", {
     skip,
     limit,
-  }).populate("owner", "name email");
+    favorite,
+  }).populate("owner", "email");
   res.json(result);
 };
 
 const getContactById = async (req, res) => {
   const { contactId } = req.params;
-  const result = await Contact.findById(contactId);
+  const result = await Contact.findById(contactId, "-createdAt -updatedAt");
   if (!result) {
     throw HttpError(404, "Not found");
   }
