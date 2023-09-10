@@ -88,7 +88,7 @@ const updateAvatar = async (req, res) => {
   const { path: tempUpload, originalname } = req.file;
 
   const tempAvatar = await Jimp.read(tempUpload);
-  tempAvatar.resize(250, 250).write(tempUpload);
+  await tempAvatar.cover(250, 250).writeAsync(tempUpload);
 
   const filename = `${_id}_${originalname}`;
   const resultUpload = path.join(avatarsDir, filename);
