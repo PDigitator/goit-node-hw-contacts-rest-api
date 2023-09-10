@@ -7,7 +7,7 @@ const multerConfig = multer.diskStorage({
   destination: tempDir,
   //   filename: (req, file, cb) => {
   //     cb(null, file.originalname);
-  //   }, //! не обов'язковий код
+  //   }, //! не обов'язковий код для перейменування
 });
 
 const upload = multer({ storage: multerConfig });
