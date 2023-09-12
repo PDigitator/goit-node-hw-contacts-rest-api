@@ -8,62 +8,83 @@ const mongoose = require("mongoose");
 
 const app = require("../app");
 
-const { DB_HOST } = process.env;
+const { User } = require("../models/user");
+
+const { DB_HOST_TEST, PORT } = process.env;
 
 describe("test login controller", () => {
+  let server = null;
+
   beforeAll(async () => {
-    await mongoose.connect(DB_HOST);
+    server = app.listen(PORT);
+    await mongoose.connect(DB_HOST_TEST);
+
+    await User.deleteMany();
   });
-  afterAll(async () => await mongoose.disconnect());
+  afterAll(async () => {
+    server.close();
+    await mongoose.connection.close();
+  });
+
+  const registerData = {
+    email: "testmail@gmail.com",
+    password: "123456",
+  };
+
+  test("register with correct data", async () => {
+    const { statusCode, body } = await request(app)
+      .post("/users/register")
+      .send(registerData);
+
+    expect(statusCode).toBe(201);
+    expect(body.user.email).toBe(registerData.email);
+
+    const user = await User.findOne({ email: registerData.email });
+    expect(user.email).toBe(registerData.email);
+  });
+
+  test("should not register the same user 2 times", async () => {
+    await request(app).post("/users/register").send({
+      email: "testmail2@gmail.com",
+      password: "123456",
+    });
+
+    const { statusCode } = await request(app).post("/users/register").send({
+      email: "testmail2@gmail.com",
+      password: "123456",
+    });
+
+    expect(statusCode).toBe(409);
+  });
 
   test("response have status code 200", async () => {
-    const email = "testmail@gmail.com";
-    const password = "123456";
-    const response = await request(app)
-      .post("/users/login")
-      .send({ email, password });
+    const response = await request(app).post("/users/login").send(registerData);
 
     expect(response.statusCode).toBe(200);
   });
 
   test("the token must be returned in the response", async () => {
-    const email = "testmail@gmail.com";
-    const password = "123456";
-    const { body } = await request(app)
-      .post("/users/login")
-      .send({ email, password });
+    const { body } = await request(app).post("/users/login").send(registerData);
 
     expect(body).toHaveProperty("token");
   });
 
   test("the response should return a user object", async () => {
-    const email = "testmail@gmail.com";
-    const password = "123456";
-    const { body } = await request(app)
-      .post("/users/login")
-      .send({ email, password });
+    const { body } = await request(app).post("/users/login").send(registerData);
 
     expect(body).toHaveProperty("user");
     expect(typeof body.user === "object" && body.user !== null).toBe(true);
   });
 
   test("the user object have 2 fields email and subscription", async () => {
-    const email = "testmail@gmail.com";
-    const password = "123456";
-    const { body } = await request(app)
-      .post("/users/login")
-      .send({ email, password });
+    const { body } = await request(app).post("/users/login").send(registerData);
 
     expect(body.user).toHaveProperty("email");
     expect(body.user).toHaveProperty("subscription");
   });
 
   test("the fields email and subscription have the data type String", async () => {
-    const email = "testmail@gmail.com";
-    const password = "123456";
-    const { body } = await request(app)
-      .post("/users/login")
-      .send({ email, password });
+    const { body } = await request(app).post("/users/login").send(registerData);
 
     const { user } = body;
 
