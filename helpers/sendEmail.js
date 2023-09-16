@@ -21,16 +21,3 @@ const sendEmail = (data) => {
 };
 
 module.exports = sendEmail;
-
-// const email = {
-//   to: "o.nikolaiev@yahoo.com",
-//   from: "o.nikolaiev@yahoo.com",
-//   subject: "Test amail",
-//   html: "<p><strong>Test amail</strong> from localhost:3000</p>",
-//   text: "Test amail</strong> from localhost:3000",
-// };
-
-// transport
-//   .sendMail(email)
-//   .then(() => console.log("Email send successfully"))
-//   .catch((error) => console.log(error.messages));
