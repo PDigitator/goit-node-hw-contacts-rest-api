@@ -15,7 +15,7 @@ const avatarsDir = path.join(__dirname, "../", "public", "avatars");
 
 const register = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).exec();
 
   if (user) {
     throw HttpError(409, "Email in use");
@@ -52,7 +52,7 @@ const register = async (req, res) => {
 
 const verifyEmail = async (req, res) => {
   const { verificationToken } = req.params;
-  const user = await User.findOne({ verificationToken });
+  const user = await User.findOne({ verificationToken }).exec();
 
   if (!user) {
     throw HttpError(404, "User not found");
@@ -61,7 +61,7 @@ const verifyEmail = async (req, res) => {
   await User.findByIdAndUpdate(user._id, {
     verify: true,
     verificationToken: "",
-  });
+  }).exec();
 
   res.json({
     message: "Verification successful",
@@ -70,7 +70,7 @@ const verifyEmail = async (req, res) => {
 
 const resendVerifyEmail = async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).exec();
 
   if (!user) {
     throw HttpError(401, "Email not found");
@@ -99,7 +99,7 @@ const resendVerifyEmail = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).exec();
 
   if (!user) {
     throw HttpError(401, "Email or password is wrong");
@@ -120,7 +120,7 @@ const login = async (req, res) => {
   };
 
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
-  await User.findByIdAndUpdate(user._id, { token });
+  await User.findByIdAndUpdate(user._id, { token }).exec();
 
   res.json({
     token,
@@ -128,7 +128,7 @@ const login = async (req, res) => {
   });
 };
 
-const getCurrent = async (req, res) => {
+const getCurrent = (req, res) => {
   const { email, subscription } = req.user;
   res.json({
     email,
@@ -138,15 +138,15 @@ const getCurrent = async (req, res) => {
 
 const logout = async (req, res) => {
   const { _id } = req.user;
-  await User.findByIdAndUpdate(_id, { token: "" });
-  res.status(204).json();
+  await User.findByIdAndUpdate(_id, { token: "" }).exec();
+  res.status(204).send();
 };
 
 const updateSubscriptionUser = async (req, res) => {
   const { _id } = req.user;
   const result = await User.findByIdAndUpdate(_id, req.body, {
     new: true,
-  });
+  }).exec();
   res.json(result);
 };
 
@@ -167,7 +167,7 @@ const updateAvatar = async (req, res) => {
     {
       new: true,
     }
-  );
+  ).exec();
 
   res.json({ avatarURL });
 };
