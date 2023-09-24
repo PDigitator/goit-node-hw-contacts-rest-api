@@ -6,7 +6,7 @@ const listContacts = async (req, res) => {
   const { page = 1, limit = 20, favorite = null } = req.query;
   const skip = (page - 1) * limit;
 
-  const allContacts = await Contact.find({ owner });
+  const allContacts = await Contact.find({ owner }).exec();
   const quantityContacts = allContacts.length;
   const totalPage = Math.ceil(quantityContacts / limit);
 
@@ -16,7 +16,10 @@ const listContacts = async (req, res) => {
     skip,
     limit,
     favorite,
-  }).populate("owner", "email");
+  })
+    .populate("owner", "email")
+    .exec();
+
   res.json({
     contacts: result,
     total: quantityContacts,
@@ -28,16 +31,22 @@ const listContacts = async (req, res) => {
 
 const getContactById = async (req, res) => {
   const { contactId } = req.params;
-  const result = await Contact.findById(contactId, "-createdAt -updatedAt");
+  const result = await Contact.findById(
+    contactId,
+    "-createdAt -updatedAt"
+  ).exec();
+
   if (!result) {
     throw HttpError(404, "Not found");
   }
+
   res.json(result);
 };
 
 const addContact = async (req, res) => {
   const { _id: owner } = req.user;
   const result = await Contact.create({ ...req.body, owner });
+
   res.status(201).json(result);
 };
 
@@ -45,10 +54,12 @@ const updateContact = async (req, res) => {
   const { contactId } = req.params;
   const result = await Contact.findByIdAndUpdate(contactId, req.body, {
     new: true,
-  });
+  }).exec();
+
   if (!result) {
     throw HttpError(404, "Not found");
   }
+
   res.json(result);
 };
 
@@ -56,19 +67,23 @@ const updateStatusContact = async (req, res) => {
   const { contactId } = req.params;
   const result = await Contact.findByIdAndUpdate(contactId, req.body, {
     new: true,
-  });
+  }).exec();
+
   if (!result) {
     throw HttpError(404, "Not found");
   }
+
   res.json(result);
 };
 
 const removeContact = async (req, res) => {
   const { contactId } = req.params;
-  const result = await Contact.findByIdAndRemove(contactId);
+  const result = await Contact.findByIdAndRemove(contactId).exec();
+
   if (!result) {
     throw HttpError(404, "Not found");
   }
+
   res.json({ mesage: "contact deleted" });
 };
 
